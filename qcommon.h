@@ -1,3 +1,7 @@
+#ifndef _Q_COMMON_H
+#define _Q_COMMON_H
+
+
 /*
 	grabbed memory management from Quake 2 
 	https://github.com/id-Software/Quake-2
@@ -57,3 +61,5 @@ int ilog2(unsigned long v);
 typedef unsigned int u32;
 typedef unsigned char u8;
 typedef uint64_t u64;
+
+#endif
