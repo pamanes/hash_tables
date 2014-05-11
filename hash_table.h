@@ -80,9 +80,12 @@ static __inline qboolean __hash_empty(struct hlist_head *ht, unsigned int sz)
  * @member: the name of the hlist_node within the struct
  * @key: the key of the objects to iterate over
  */
+/*
 #define hash_for_each_possible(name, obj, member, key)			\
 	hlist_for_each_entry(obj, &name[hash_min(key, HASH_BITS(name))], member)
-
+*/
+#define hash_for_each_possible(name, obj, member, key, type)			\
+		hlist_for_each_entry(obj, &name[hash_min(key, HASH_BITS(name))], member, type)
 /**
  * hash_for_each_safe - iterate over a hashtable safe against removal of
  * hash entry
