@@ -467,7 +467,7 @@ static __inline void hlist_move_list(struct hlist_head *old,
         old->first = (void *)0;
 }
 
-#define hlist_entry(ptr, type, member) container_of(ptr,type,member)
+//#define hlist_entry(ptr, type, member) container_of(ptr,type,member)
 
 #define hlist_for_each(pos, head) \
          for (pos = (head)->first; (pos); \
@@ -476,7 +476,7 @@ static __inline void hlist_move_list(struct hlist_head *old,
 #define hlist_for_each_safe(pos, n, head) \
 	for(pos = (head)->first; pos != (void*)0 && ((n = pos->next) || 1); pos = n)
 
-#define hlist_entry(ptr, type, member) container_of(ptr,type,member)
+
 /*
 #define hlist_for_each(pos, head) \
 	for (pos = (head)->first; pos ; pos = pos->next)
@@ -500,11 +500,30 @@ static __inline void hlist_move_list(struct hlist_head *old,
  * @head:	the head for your list.
  * @member:	the name of the hlist_node within the struct.
  */
+/*
 #define hlist_for_each_entry(pos, head, member)				\
+	for (pos = (head)->first; \
+	     pos;							\
+	     pos = (pos)->member.next)
+*/
+/*
+#define hlist_for_each_entry(pos, head, member, type)				\
+	for (pos = hlist_entry((head)->first,type,member); \
+	     pos;							\
+	     pos = hlist_entry((pos)->member.next, type, member))
+
+*/
+
+#define hlist_for_each_entry(pos, head, member, type)				\
+    for (pos = hlist_entry_safe((head)->first, type, member);\
+    pos;							\
+    pos = hlist_entry_safe((pos)->member.next, type, member))
+/*
+#define hlist_for_each_entry_test(pos, head, member)				\
 	for (pos = (head)->first;\
 	     pos;							\
 	     pos = (pos)->member.next)
-
+*/
  /**
  * hlist_for_each_entry - iterate over list of given type
  * @tpos:       the type * to use as a loop cursor.
@@ -517,6 +536,26 @@ static __inline void hlist_move_list(struct hlist_head *old,
              pos &&                      \
                 ( tpos = hlist_entry(pos, type, member) || 1); \
              pos = pos->next)
+
+
+/**
+ * hlist_for_each_entry_continue - iterate over a hlist continuing after current point
+ * @pos:	the type * to use as a loop cursor.
+ * @member:	the name of the hlist_node within the struct.
+ */
+#define hlist_for_each_entry_continue(pos, member, type)			\
+    for (pos = hlist_entry_safe((pos)->member.next, type, member);\
+    pos;							\
+    pos = hlist_entry_safe((pos)->member.next, type, member))
+
+/**
+ * hlist_for_each_entry_from - iterate over a hlist continuing from current point
+ * @pos:	the type * to use as a loop cursor.
+ * @member:	the name of the hlist_node within the struct.
+ */
+#define hlist_for_each_entry_from(pos, member, type)				\
+    for (; pos;							\
+    pos = hlist_entry_safe((pos)->member.next, type, member))
 
 /**
  * hlist_for_each_entry_safe - iterate over list of given type safe against removal of list entry
@@ -538,6 +577,14 @@ static __inline void hlist_move_list(struct hlist_head *old,
 	for (pos = hlist_entry_safe((head)->first, type, member);\
 	     pos && ((n = pos->member.next) || 1);			\
 	     pos = hlist_entry_safe(n, type, member))
+
+#define wcast_container_of(posx, ftype, type, member) \
+		(ftype)(container_of(posx, type, member))
+
+#define wcast_ptr_container_of(posx, type, member) \
+		(type *)(container_of(posx, type, member))
+
+#define hlist_entry(ptr, type, member) wcast_ptr_container_of(ptr,type,member)
 /**
 462  * list_for_each_entry_from - iterate over list of given type from the current point
 463  * @pos:        the type * to use as a loop cursor.
@@ -583,5 +630,48 @@ static __inline void hlist_move_list(struct hlist_head *old,
 		 Z_Free(temp);
 	}
 	*/
+
+
+/*
+	struct hlist_head obj_pool;
+	struct ht *newx, *tmp;
+	struct hlist_node *pos, *q;
+	int i = 0;
+	int ch = 0;
+	char *text;	
+
+	//INIT_HLIST_NODE(&(obj_pool.first));
+	INIT_HLIST_HEAD(&(obj_pool));
+	
+	//Z chain init
+	z_chain.next = z_chain.prev = &z_chain;	
+
+	for(;i<1;i++)
+	{
+		newx = Z_Malloc(sizeof(struct ht));	
+		text = Z_Malloc(6);
+		strcat(text, "hello");
+		newx->object = text;
+		hlist_add_head(&newx->node, &obj_pool);
+	}	
+
+	hlist_for_each(pos, &obj_pool)
+	{
+		tmp = container_of(pos, struct ht, node);
+		printf("text is %s", (char*)tmp->object);
+	}
+	
+	if(!hlist_empty((&obj_pool)))
+	{
+		hlist_for_each_safe(pos, q, &obj_pool)
+		{
+			tmp = container_of(pos, struct ht, node);
+			printf("del text is %d", tmp->object);
+			hlist_del(&tmp->node);
+			//Z_Free(tmp->object);
+			Z_Free(tmp->object);
+			Z_Free(tmp);
+		}
+	}*/
 
 #endif
