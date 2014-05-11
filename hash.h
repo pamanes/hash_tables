@@ -1,6 +1,9 @@
 #ifndef _LINUX_HASH_H
 #define _LINUX_HASH_H
 
+#include "qcommon.h"
+#include "list.h"
+
 /* 2^31 + 2^29 - 2^25 + 2^22 - 2^19 - 2^16 + 1 */
  #define GOLDEN_RATIO_PRIME_32 0x9e370001UL
  /*  2^63 + 2^61 - 2^57 + 2^54 - 2^51 - 2^18 + 1 */
@@ -18,15 +21,45 @@
  */
 
 #ifdef _WIN64
-# define BITS_PER_LONG           32
-# define BITS_PER_LONG_LONG      64
- #define hash_long(val, bits) hash_64(val, bits)
- #define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_64
-#else
-# define BITS_PER_LONG           64
-#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_32
-#define hash_long(val, bits) hash_32(val, bits)
+	#define BITS_PER_LONG           32
+	#define BITS_PER_LONG_LONG      64
+	#define hash_long(val, bits) hash_64(val, bits)
+	#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_64
+#elif _WIN32
+	#define BITS_PER_LONG           64
+	#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_32
+	#define hash_long(val, bits) hash_32(val, bits)
+#elif __APPLE__
+	//do stuff
+    #if defined(__LP64__) || defined(_LP64)
+        #define BUILD_64   1
+        #define BITS_PER_LONG           32
+        #define BITS_PER_LONG_LONG      64
+        #define hash_long(val, bits) hash_64(val, bits)
+        #define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_64
+    #else
+        #define BITS_PER_LONG           64
+        #define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_32
+        #define hash_long(val, bits) hash_32(val, bits)
+    #endif
+#elif __linux
+	#if defined(__LP64__) || defined(_LP64)
+		#define BUILD_64   1
+		#define BITS_PER_LONG           32
+		#define BITS_PER_LONG_LONG      64
+		#define hash_long(val, bits) hash_64(val, bits)
+		#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_64
+	#else
+		#define BITS_PER_LONG           64
+		#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_32
+		#define hash_long(val, bits) hash_32(val, bits)
+	#endif
+#elif __unix
+	//unix
+#elif __posix
+	//posix
 #endif
+
 
  static __inline u64 hash_64(u64 val, unsigned int bits)
  {
